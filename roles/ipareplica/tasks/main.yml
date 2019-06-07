@@ -42,36 +42,7 @@
   - dns
   - ntp
 
-#- name: Kinit as Admin on Server
-#  delegate_to: '{{ ipareplica_server }}'
-#  shell: |
-#    echo {{ ipaadmin_password }} | kinit admin
-#
-#- name: Dig replica from server
-#  delegate_to: '{{ ipareplica_server }}'
-#  shell: | 
-#    dig +short {{ inventory_hostname }}
-#  register: my_ip
-#
-#- name: Show what was found by dig
-#  debug: msg="{{ my_ip.stdout }}"
-#
-#- name: Add DNS Record if missing
-#  delegate_to: '{{ ipareplica_server }}'
-#  when: my_ip.stdout != ansible_default_ipv4.address
-#  shell: 
-#    ipa dnsrecord-add 
-#    {{ ipaserver_domain }}
-#    {{ ansible_hostname }}
-#    --a-rec {{ ansible_default_ipv4.address }}
-#    --a-create-reverse 
-#  ignore_errors: yes
-#
-#- name: Check if IPA Server configured
-#  stat: path=/root/cacert.p12
-#  register: ipareplica
-
-- name: Run IPA Master Install command
+- name: Run IPA Replica Install command
 #  when: ipareplica.stat.exists == False
   shell:
     ipa-replica-install
