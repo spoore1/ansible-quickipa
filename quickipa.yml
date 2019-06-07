@@ -1,0 +1,30 @@
+---
+- name: Gather facts for all
+  hosts: all
+
+###################
+
+- name: Install IPA servers
+  hosts: ipaserver
+  become: true
+  roles:
+  - role: ipaserver
+    state: present
+
+###################
+
+- name: Install IPA clients
+  hosts: ipaclients
+  become: true
+  roles:
+  - role: ipaclient
+    state: present
+
+###################
+
+- name: Install IPA Replicas
+  hosts: ipareplicas
+  become: true
+  roles:
+  - role: ipareplica
+    state: present

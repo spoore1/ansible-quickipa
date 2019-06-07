@@ -1,0 +1,89 @@
+- name: Set hostname 
+  hostname: name={{ inventory_hostname }}
+
+- name: Check for Chrony
+  shell: |
+    systemctl status chronyd
+  ignore_errors: yes
+  register: chronyd
+
+- name: Set time with Chrony
+  when: chronyd.rc == 0
+  shell: |
+    systemctl stop chronyd
+    chronyd -q 'server pool.ntp.org iburst'
+    systemctl start chronyd
+
+- name: Install IPA Server Software
+  include_tasks: '{{ item }}' 
+  with_first_found:
+    - '{{ common_path }}-{{ ansible_distribution }}-{{ ansible_distribution_version}}.yml'
+    - '{{ common_path }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml'
+    - '{{ common_path }}-{{ ansible_distribution }}.yml'
+
+- name: Set Resolv Conf
+  when: "('ipareplicas' in group_names) and use_dns"
+  lineinfile:
+    dest=/etc/resolv.conf
+    regexp='nameserver'
+    insertbefore=BOF
+    line="nameserver {{ ipareplica_server_ip }}"
+
+- name: Open necessary firewall ports
+  firewalld:
+    service: '{{ item }}'
+    permanent: true
+    immediate: true
+    state: enabled
+  with_items:
+  - freeipa-ldap
+  - freeipa-ldaps
+  - freeipa-replication
+  - dns
+  - ntp
+
+#- name: Kinit as Admin on Server
+#  delegate_to: '{{ ipareplica_server }}'
+#  shell: |
+#    echo {{ ipaadmin_password }} | kinit admin
+#
+#- name: Dig replica from server
+#  delegate_to: '{{ ipareplica_server }}'
+#  shell: | 
+#    dig +short {{ inventory_hostname }}
+#  register: my_ip
+#
+#- name: Show what was found by dig
+#  debug: msg="{{ my_ip.stdout }}"
+#
+#- name: Add DNS Record if missing
+#  delegate_to: '{{ ipareplica_server }}'
+#  when: my_ip.stdout != ansible_default_ipv4.address
+#  shell: 
+#    ipa dnsrecord-add 
+#    {{ ipaserver_domain }}
+#    {{ ansible_hostname }}
+#    --a-rec {{ ansible_default_ipv4.address }}
+#    --a-create-reverse 
+#  ignore_errors: yes
+#
+#- name: Check if IPA Server configured
+#  stat: path=/root/cacert.p12
+#  register: ipareplica
+
+- name: Run IPA Master Install command
+#  when: ipareplica.stat.exists == False
+  shell:
+    ipa-replica-install
+    {{ '--setup-ca'
+       if use_ca else '' }}
+    {{ '--setup-dns --forwarder %s' % ipareplica_forwarders
+       if use_dns else '' }}
+    {{ '--reverse-zone %s --allow-zone-overlap' % ipareplica_reverse_zones
+       if (use_dns and ipareplica_allow_zone_overlap is defined) else '' }}
+    {{ '--ip-address=%s' % ansible_default_ipv4.address
+       if use_dns else '' }}
+    --hostname {{ inventory_hostname }}
+    --domain {{ ipaserver_domain }}
+    --admin-password  {{ ipaadmin_password }}
+    -U > /var/log/ipa-replica-install.command.log 2>&1

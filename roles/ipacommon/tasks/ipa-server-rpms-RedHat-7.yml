@@ -1,0 +1,4 @@
+- name: Install ipa-server-dns
+  package:
+    name: ipa-server-dns
+    state: present

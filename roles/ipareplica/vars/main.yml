@@ -1,0 +1,5 @@
+use_dns: '{{ ipareplica_setup_dns|default(False) }}'
+use_ca: '{{ ipareplica_setup_ca|default(False) }}'
+ipareplica_server_ip: '{{ hostvars[groups["ipaserver"][0]]["ansible_default_ipv4"]["address"] }}'
+ipareplica_server: '{{ hostvars[groups["ipaserver"][0]]["ansible_hostname"] }}'
+common_path: 'roles/ipacommon/tasks/ipa-server-rpms'

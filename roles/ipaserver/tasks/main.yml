@@ -1,0 +1,55 @@
+- name: Set hostname 
+  hostname: name={{ inventory_hostname }}
+
+- name: Check for Chrony
+  shell: |
+    systemctl status chronyd
+  ignore_errors: yes
+  register: chronyd
+
+- name: Set time with Chrony
+  when: chronyd.rc == 0
+  shell: |
+    systemctl stop chronyd
+    chronyd -q 'server pool.ntp.org iburst'
+    systemctl start chronyd
+
+- name: Install IPA Server Software
+  include_tasks: '{{ item }}' 
+  with_first_found:
+    - '{{ common_path }}-{{ ansible_distribution }}-{{ ansible_distribution_version}}.yml'
+    - '{{ common_path }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml'
+    - '{{ common_path }}-{{ ansible_distribution }}.yml'
+
+- name: Check if IPA Server configured
+  stat: path=/root/cacert.p12
+  register: ipaserver
+
+- name: Run IPA Master Install command
+  when: ipaserver.stat.exists == False
+  shell:
+    ipa-server-install
+    {{ '--setup-dns --forwarder %s' % ipaserver_forwarders
+       if use_dns else '' }}
+    {{ '--reverse-zone %s --allow-zone-overlap' % ipaserver_reverse_zones
+       if (ipaserver_reverse_zones and ipaserver_allow_zone_overlap is defined) else '' }}
+    --hostname {{ inventory_hostname }}
+    --ip-address {{ ansible_default_ipv4.address }}
+    --domain {{ ipaserver_domain }}
+    --realm {{ ipaserver_realm }}
+    -a {{ ipaadmin_password }}
+    -p {{ ipadm_password }}
+    -U > /var/log/ipa-server-install.command.log 2>&1
+
+- name: Open necessary firewall ports
+  firewalld:
+    service: '{{ item }}'
+    permanent: true
+    immediate: true
+    state: enabled
+  with_items:
+  - freeipa-ldap
+  - freeipa-ldaps
+  - freeipa-replication
+  - dns
+  - ntp

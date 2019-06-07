@@ -1,0 +1,3 @@
+use_dns: '{{ hostvars[groups["ipaserver"][0]]["ipaserver_setup_dns"]|default(False)|bool }}'
+ipaclient_server_ip: '{{ hostvars[groups["ipaserver"][0]]["ansible_default_ipv4"]["address"] }}'
+common_path: 'roles/ipacommon/tasks/ipa-client-rpms'

@@ -1,0 +1,52 @@
+- name: Set hostname 
+  hostname: name={{ inventory_hostname }}
+
+- name: Check for Chrony
+  shell: |
+    systemctl status chronyd
+  ignore_errors: yes
+  register: chronyd
+
+- name: Set time with Chrony
+  when: chronyd.rc == 0
+  shell: |
+    systemctl stop chronyd
+    chronyd -q 'server pool.ntp.org iburst'
+    systemctl start chronyd
+
+- name: Install IPA Client Software
+  include_tasks: '{{ item }}' 
+  with_first_found:
+    - '{{ common_path }}-{{ ansible_distribution }}-{{ ansible_distribution_version}}.yml'
+    - '{{ common_path }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml'
+    - '{{ common_path }}-{{ ansible_distribution }}.yml'
+
+- name: debug
+  debug:
+    msg: '{{ use_dns }}'
+
+- name: Set Resolv Conf
+  when: "('ipaclients' in group_names) and use_dns"
+  lineinfile:
+    dest=/etc/resolv.conf
+    regexp='nameserver'
+    insertbefore=BOF
+    line="nameserver {{ ipaclient_server_ip }}"
+
+- name: Check if IPA Client configured
+  stat: path=/etc/ipa/ca.crt
+  register: ipaclient_installed
+
+- name: IPA Client Install
+  when: "('ipaclients' in group_names) and ipaclient_installed.stat.exists == False"
+  shell:
+    ipa-client-install
+    {{ '--ip-address=%s' % ansible_default_ipv4.address
+      if use_dns else '' }}
+    --hostname {{ inventory_hostname }}
+    --server {{ ipaclient_servers }}
+    --domain {{ ipaserver_domain }}
+    --realm {{ ipaserver_realm }}
+    -w {{ ipaadmin_password }}
+    -p {{ ipaadmin_principal }}
+    -U > /var/log/ipa-client-install.command.log 2>&1

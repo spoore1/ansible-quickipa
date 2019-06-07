@@ -1,0 +1,5 @@
+- name:  Install idm module with client
+  shell: |
+    dnf -y module reset idm
+    dnf -y module enable idm:DL1
+    dnf -y module install idm:DL1/client
