@@ -41,6 +41,12 @@
     -p {{ ipadm_password }}
     -U > /var/log/ipa-server-install.command.log 2>&1
 
+- name: Enable firewalld
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
 - name: Open necessary firewall ports
   firewalld:
     service: '{{ item }}'

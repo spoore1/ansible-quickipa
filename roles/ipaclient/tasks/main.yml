@@ -28,10 +28,11 @@
 - name: Set Resolv Conf
   when: "('ipaclients' in group_names) and use_dns"
   lineinfile:
-    dest=/etc/resolv.conf
-    regexp='nameserver'
-    insertbefore=BOF
-    line="nameserver {{ ipaclient_server_ip }}"
+    dest: /etc/resolv.conf
+    line: nameserver {{ ipaclient_server_ip }}
+    insertafter: search.*
+    backup: yes
+
 
 - name: Check if IPA Client configured
   stat: path=/etc/ipa/ca.crt

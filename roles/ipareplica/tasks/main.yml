@@ -24,10 +24,16 @@
 - name: Set Resolv Conf
   when: "('ipareplicas' in group_names) and use_dns"
   lineinfile:
-    dest=/etc/resolv.conf
-    regexp='nameserver'
-    insertbefore=BOF
-    line="nameserver {{ ipareplica_server_ip }}"
+    dest: /etc/resolv.conf
+    line: nameserver {{ ipareplica_server_ip }}
+    insertafter: search.*
+    backup: yes
+
+- name: Enable firewalld
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
 
 - name: Open necessary firewall ports
   firewalld:
