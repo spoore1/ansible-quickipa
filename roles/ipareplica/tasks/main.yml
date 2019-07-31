@@ -29,11 +29,16 @@
     insertafter: search.*
     backup: yes
 
+- name: collect facts about system services
+  service_facts:
+
 - name: Enable firewalld
   service:
     name: firewalld
     state: started
     enabled: yes
+  when:
+    - (ansible_facts.services['firewalld.service'] is defined)
 
 - name: Open necessary firewall ports
   firewalld:
@@ -42,11 +47,14 @@
     immediate: true
     state: enabled
   with_items:
-  - freeipa-ldap
-  - freeipa-ldaps
-  - freeipa-replication
-  - dns
-  - ntp
+    - freeipa-ldap
+    - freeipa-ldaps
+    - freeipa-replication
+    - dns
+    - ntp
+  when:
+    - (ansible_facts.services['firewalld.service'] is defined)
+    - (ansible_facts.services['firewalld.service']['state'] == 'running')
 
 - name: Run IPA Replica Install command
 #  when: ipareplica.stat.exists == False
