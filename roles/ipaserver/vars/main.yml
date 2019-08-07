@@ -1,2 +1,2 @@
 use_dns: '{{ ipaserver_setup_dns|default(False) }}'
-common_path: 'roles/ipacommon/tasks/ipa-server-rpms'
+common_path: '{{ role_path }}/../ipacommon/tasks/ipa-server-rpms'
