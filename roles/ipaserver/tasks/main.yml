@@ -52,6 +52,9 @@
   when:
     - (ansible_facts.services['firewalld.service'] is defined)
 
+- name: collect facts about system services
+  service_facts:
+
 - name: Open necessary firewall ports
   firewalld:
     service: '{{ item }}'
