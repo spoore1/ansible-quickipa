@@ -1,6 +1,3 @@
-- name: Set hostname 
-  hostname: name={{ inventory_hostname }}
-
 - name: Check for Chrony
   shell: |
     systemctl status chronyd
@@ -33,7 +30,6 @@
        if use_dns else '' }}
     {{ '--reverse-zone %s --allow-zone-overlap' % ipaserver_reverse_zones
        if (ipaserver_reverse_zones and ipaserver_allow_zone_overlap is defined) else '' }}
-    --hostname {{ inventory_hostname }}
     --ip-address {{ ansible_default_ipv4.address }}
     --domain {{ ipaserver_domain }}
     --realm {{ ipaserver_realm }}
