@@ -6,6 +6,8 @@ ipaserver_setup_dns=yes
 ipaserver_forwarders=192.168.122.1
 ipaserver_reverse_zones=122.168.192.in-addr.arpa.
 ipaserver_allow_zone_overlap=yes
+ipaserver_no_dnssec_validation=yes
+ipaserver_forward_policy=first
 ansible_python_interpreter=/usr/libexec/platform-python
 
 [ipaclients]
@@ -25,6 +27,8 @@ ipareplica_setup_dns=yes
 ipareplica_forwarders=192.168.122.1
 ipareplica_reverse_zones=122.168.192.in-addr.arpa.
 ipareplica_allow_zone_overlap=yes
+ipareplica_no_dnssec_validation=yes
+ipareplica_forward_policy=first
 
 [ipa:children]
 ipaserver
