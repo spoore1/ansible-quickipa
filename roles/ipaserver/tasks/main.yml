@@ -35,7 +35,7 @@
        if (ipaserver_reverse_zones and ipaserver_allow_zone_overlap is defined) else '' }}
     {{ '--no-dnssec-validation'
        if (ipaserver_no_dnssec_validation) else '' }}
-    {{ '--forward_policy %s' % ipaserver_forward_policy
+    {{ '--forward-policy %s' % ipaserver_forward_policy
        if (ipaserver_forward_policy is defined) else '' }}
     --hostname {{ inventory_hostname }}
     --ip-address {{ ansible_default_ipv4.address }}
