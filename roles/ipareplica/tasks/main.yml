@@ -70,7 +70,7 @@
     {{ '--reverse-zone %s --allow-zone-overlap' % ipareplica_reverse_zones
        if (use_dns and ipareplica_allow_zone_overlap is defined) else '' }}
     {{ '--no-dnssec-validation'
-       if (ipareplica_no_dnssec_validation) else '' }}
+       if (ipareplica_no_dnssec_validation is defined and ipareplica_no_dnssec_validation) else '' }}
     {{ '--forward-policy %s' % ipaserver_forward_policy
        if (ipareplica_forward_policy is defined) else '' }}
     {{ '--ip-address=%s' % ansible_default_ipv4.address
