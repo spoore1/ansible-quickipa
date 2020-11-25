@@ -33,10 +33,13 @@
   service_facts:
 
 - name: Enable firewalld
-  service:
-    name: firewalld
-    state: started
-    enabled: yes
+  #service:
+  #  name: firewalld
+  #  state: started
+  #  enabled: yes
+  shell: |
+    systemctl start firewalld
+    systemctl enable firewalld
   when:
     - (ansible_facts.services['firewalld.service'] is defined)
 
