@@ -1,0 +1,10 @@
+- name:  Install idm module with dns
+  shell: |
+    dnf -y module reset idm
+    dnf -y module enable idm:DL1
+    dnf -y module install idm:DL1/dns
+- name: Install hostname package
+  package:
+    name: hostname
+    state: present
+
